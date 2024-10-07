@@ -1,0 +1,14 @@
+http://tag.test {
+	root * /var/www
+
+	@websockets {
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+
+	reverse_proxy @websockets server:420
+
+	reverse_proxy /api/* server:420
+
+	file_server
+}

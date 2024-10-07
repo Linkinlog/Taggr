@@ -1,0 +1,23 @@
+services:
+  server:
+    build: .
+    ports:
+      - "420:420"
+    depends_on:
+      caddy:
+        condition: service_started
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      - $PWD/public/:/var/www/
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:

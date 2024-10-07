@@ -1,0 +1,26 @@
+body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+.grid {
+	display: grid;
+	grid-template-columns: repeat(10, 50px);
+	grid-template-rows: repeat(10, 50px);
+	gap: 2px;
+}
+.grid-cell {
+	width: 50px;
+	height: 50px;
+	border: 1px solid black;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.infected {
+	background-color: red;
+}
+.player {
+	font-weight: bold;
+}
