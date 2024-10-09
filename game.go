@@ -26,9 +26,9 @@ var (
 
 func (g *Game) AddSession(size int) (name string) {
 	ctx := context.Background()
-	// if size > 100 {
-	// 	size = 100
-	// }
+	if size > 1000 {
+		size = 1000
+	}
 	added := false
 	for i := 0; i < 100; i++ {
 		name = fmt.Sprintf("%s-%s-%s-%s",
