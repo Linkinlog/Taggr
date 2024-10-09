@@ -18,7 +18,7 @@ type WebSocketHandler struct {
 
 func NewWebSocketHandler() *WebSocketHandler {
 	return &WebSocketHandler{
-		Changes: make(chan *Event, 16),
+		Changes: make(chan *Event, 100),
 		errors:  make(chan error, 1),
 
 		// TODO we never empty the session map for websockets and idk how

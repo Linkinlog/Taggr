@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"strings"
 	"sync"
+	"time"
 )
 
-func NewSession(size int) *Session {
+func NewSession(size int, ctx context.Context) *Session {
 	field := make([][]*Player, size)
 	for i := 0; i < size; i++ {
 		field[i] = make([]*Player, size)
@@ -16,16 +18,53 @@ func NewSession(size int) *Session {
 		}
 	}
 
-	ws := NewWebSocketHandler()
-
-	return &Session{
+	s := &Session{
 		field:   field,
 		size:    size,
 		players: make(map[string]*Player),
 
-		Ws: ws,
-		m:  &sync.Mutex{},
+		Ws:          NewWebSocketHandler(),
+		fieldMutex:  &sync.Mutex{},
+		playerMutex: &sync.Mutex{},
 	}
+
+	bots := []string{"maggie bot", "bandit bot", "billy bot", "bobby bot", "benny bot", "bandy bot", "bendy bot", "benky bot", "bency bot", "benjy bot", "maggie bot 2", "bandit bot 2", "billy bot 2", "bobby bot 2", "benny bot 2", "bandy bot 2", "bendy bot 2", "bekny bot 2", "bency bot 2", "benjy bot 2", "maggie bot 3", "bandit bot 3", "billy bot 3", "bobby bot 3", "benny bot 3", "bandy bot 3", "bendy bot 3", "bekny bot 3", "bency bot 3", "benjy bot 3"}
+
+	// 2 bots per 10 size
+	for i := 0; i < size/5; i++ {
+		if i >= len(bots) {
+			break
+		}
+		bot := NewPlayer(bots[i])
+
+		s.AddPlayer(bot)
+		s.PlacePlayerRandomly(bot)
+
+		go func() {
+			ticker := time.NewTicker(time.Duration(time.Duration(rand.Intn(1000))*time.Millisecond) + 250*time.Millisecond)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					switch rand.Intn(3) {
+					case 0:
+						s.MovePlayerDown(bot)
+						s.MovePlayerLeft(bot)
+					case 1:
+						s.MovePlayerUp(bot)
+						s.MovePlayerRight(bot)
+					case 2:
+						s.MovePlayerLeft(bot)
+					case 3:
+						s.MovePlayerRight(bot)
+					}
+				}
+			}
+		}()
+	}
+
+	return s
 }
 
 type Session struct {
@@ -33,8 +72,9 @@ type Session struct {
 	players map[string]*Player
 	size    int
 
-	Ws *WebSocketHandler
-	m  *sync.Mutex
+	Ws          *WebSocketHandler
+	fieldMutex  *sync.Mutex
+	playerMutex *sync.Mutex
 }
 
 func (s *Session) GetPlayer(id string) *Player {
@@ -81,11 +121,13 @@ func (s *Session) MovePlayerRight(p *Player) {
 }
 
 func (s *Session) MovePlayer(p *Player, x, y int) {
+	s.fieldMutex.Lock()
+	defer s.fieldMutex.Unlock()
 	if !s.CheckPlayerPosition(p) {
 		panic("hey we need to fix moving players")
 	}
 	if s.field[x][y] != nil {
-		if p.Infected() {
+		if p.Infected() && !s.field[x][y].Infected() {
 			p.AddScore()
 			event := &Event{
 				Action: "score",
@@ -110,7 +152,7 @@ func (s *Session) MovePlayer(p *Player, x, y int) {
 				},
 				Action: "infect",
 			})
-		} else if s.field[x][y].Infected() {
+		} else if s.field[x][y].Infected() && !p.Infected() {
 			p.Infect()
 			s.Ws.Broadcast(&Event{
 				Data: &PlayerResponse{
@@ -141,6 +183,7 @@ func (s *Session) MovePlayer(p *Player, x, y int) {
 	s.Ws.Broadcast(&Event{
 		Data: &PlayerMoveResponse{
 			Name:     p.Name(),
+			Score:    p.Score(),
 			X:        p.X(),
 			Y:        p.Y(),
 			NewX:     x,
@@ -154,14 +197,18 @@ func (s *Session) MovePlayer(p *Player, x, y int) {
 
 func (s *Session) PlacePlayerRandomly(p *Player) {
 	placed := false
-	for i := 0; i < 10; i++ {
+	for !placed {
+		fmt.Println("trying to place player")
+		fmt.Println(p.Name())
 		x := rand.Intn(s.size)
 		y := rand.Intn(s.size)
 
-		if s.PlacePlayer(p, x, y) {
-			placed = true
-			break
+		if !s.PlacePlayer(p, x, y) {
+			continue
 		}
+		placed = true
+		fmt.Println("placed player")
+		fmt.Println(p.Name())
 	}
 
 	if !placed {
@@ -170,15 +217,17 @@ func (s *Session) PlacePlayerRandomly(p *Player) {
 }
 
 func (s *Session) PlacePlayer(p *Player, x, y int) (placed bool) {
+	s.fieldMutex.Lock()
+	defer s.fieldMutex.Unlock()
 	placed = false
 	if s.field[x][y] == nil {
 		p.SetPosition(x, y)
 		s.field[x][y] = p
-		s.AddPlayer(p)
 		placed = true
 		s.Ws.Broadcast(&Event{
 			Data: &PlayerMoveResponse{
 				Name:     p.Name(),
+				Score:    p.Score(),
 				Infected: p.Infected(),
 				X:        p.X(),
 				Y:        p.Y(),
@@ -192,8 +241,8 @@ func (s *Session) PlacePlayer(p *Player, x, y int) (placed bool) {
 }
 
 func (s *Session) AddPlayer(p *Player) {
-	s.m.Lock()
-	defer s.m.Unlock()
+	s.playerMutex.Lock()
+	defer s.playerMutex.Unlock()
 	if len(s.players) == 0 {
 		p.Infect()
 	}
@@ -201,8 +250,8 @@ func (s *Session) AddPlayer(p *Player) {
 }
 
 func (s *Session) RemovePlayer(p *Player) {
-	s.m.Lock()
-	defer s.m.Unlock()
+	s.playerMutex.Lock()
+	defer s.playerMutex.Unlock()
 	if s.CheckPlayerPosition(p) {
 		x, y := p.Postition()
 		delete(s.players, p.ID())

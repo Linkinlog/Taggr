@@ -1,4 +1,8 @@
 build:
-	CGO_ENABLED=0 GOOS=linux go build -o tag -ldflags "-s -w" ./...
+	CGO_ENABLED=0 GOOS=linux go build -o tag -ldflags "-s -w"
+gen:
+	go generate ./...
+lint:
+	golangci-lint run
 
-.PHONY: build
+.PHONY: build gen lint

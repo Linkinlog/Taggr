@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/net/websocket"
 )
@@ -44,11 +45,12 @@ func ServeHTTP(g *Game) error {
 		responder := &FieldResponse{
 			Players: players,
 			Field:   sess.Field(),
+			Size:    sess.FieldSize(),
 		}
 
 		event := &Event{
-			Data: responder,
-			Action:    "init",
+			Data:   responder,
+			Action: "init",
 		}
 
 		eventBytes, err := event.Response()
@@ -82,6 +84,15 @@ func ServeHTTP(g *Game) error {
 
 	mux.HandleFunc("POST /api/games", func(w http.ResponseWriter, r *http.Request) {
 		size := 10
+
+		sizeInput := r.FormValue("size")
+		if sizeInput != "" {
+			s, err := strconv.Atoi(sizeInput)
+			if err == nil {
+				size = s
+			}
+		}
+
 		name := g.AddSession(size)
 
 		resp := struct {
@@ -180,6 +191,13 @@ func ServeHTTP(g *Game) error {
 		if sess == nil {
 			http.Error(w, "session not found", http.StatusNotFound)
 			return
+		}
+
+		for _, player := range sess.Players() {
+			if player.Name() == name {
+				http.Error(w, "player already exists", http.StatusBadRequest)
+				return
+			}
 		}
 
 		player := NewPlayer(name)

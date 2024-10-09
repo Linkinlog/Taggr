@@ -6,14 +6,13 @@ body {
 }
 .grid {
 	display: grid;
-	grid-template-columns: repeat(10, 50px);
-	grid-template-rows: repeat(10, 50px);
 	gap: 2px;
 }
 .grid-cell {
 	width: 50px;
 	height: 50px;
-	border: 1px solid black;
+	border: 1px solid purple;
+	font-size: 0.45rem;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -23,4 +22,38 @@ body {
 }
 .player {
 	font-weight: bold;
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	width: 100%;
+}
+
+#game-grid {
+	margin: 0 4rem;
+	min-width: 50vw;
+	min-height: 50vh;
+}
+
+#game-listing {
+	width: 25vw;
+}
+#games {
+	padding: 0 0.25rem;
+	margin: 0 0 0.5rem 0;
+	height: 4rem;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	resize: vertical;
+	border: 1px solid purple;
+	border-radius: 7px;
+	text-align: left;
+}
+
+#games p {
+	margin: 7px;
 }

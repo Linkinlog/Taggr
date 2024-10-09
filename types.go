@@ -29,6 +29,7 @@ func (p *PlayerResponse) Data() ([]byte, error) {
 
 type PlayerMoveResponse struct {
 	Name     string `json:"name"`
+	Score    int    `json:"score"`
 	Infected bool   `json:"infected"`
 	X        int    `json:"x"`
 	Y        int    `json:"y"`

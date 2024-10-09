@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -24,6 +25,7 @@ var (
 )
 
 func (g *Game) AddSession(size int) (name string) {
+	ctx := context.Background()
 	if size > 100 {
 		size = 100
 	}
@@ -36,7 +38,7 @@ func (g *Game) AddSession(size int) (name string) {
 			namePart4[rand.Intn(len(namePart4))],
 		)
 		if _, ok := g.sessions[name]; !ok {
-			g.sessions[name] = NewSession(size)
+			g.sessions[name] = NewSession(size, ctx)
 			added = true
 			break
 		}
