@@ -36,7 +36,6 @@ Taggr is a simple, highly concurrent, event driven, multiplayer infection game w
 
 3. **Access the game**:
     - Set your DNS to point `*.test` to `127.0.0.1` or simply modify your host file to add `tag.test 127.0.0.1`
-    - Open your web browser and navigate to `http://localhost:port`, replacing `port` with the port specified in your `docker-compose.yml`.
 
 ### Playing the Game
 
