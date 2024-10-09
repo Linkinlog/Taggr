@@ -35,8 +35,6 @@ main {
 
 #game-grid {
 	margin: 0 4rem;
-	min-width: 50vw;
-	min-height: 50vh;
 }
 
 #game-listing {

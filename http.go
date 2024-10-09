@@ -43,9 +43,10 @@ func ServeHTTP(g *Game) error {
 		}
 
 		responder := &FieldResponse{
-			Players: players,
-			Field:   sess.Field(),
-			Size:    sess.FieldSize(),
+			Players:   players,
+			Field:     sess.Field(),
+			FieldHTML: sess.FieldHTML(),
+			Size:      sess.FieldSize(),
 		}
 
 		event := &Event{
@@ -120,8 +121,9 @@ func ServeHTTP(g *Game) error {
 			return
 		}
 
-		resp := FieldResponse{
+		resp := &FieldResponse{
 			Field: sess.Field(),
+			FieldHTML: sess.FieldHTML(),
 			Size:  sess.FieldSize(),
 		}
 

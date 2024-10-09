@@ -300,6 +300,23 @@ func (s *Session) FieldSize() int {
 	return s.size
 }
 
+func (s *Session) FieldHTML() string {
+	var buf strings.Builder
+	buf.WriteString(fmt.Sprintf("<section id=\"game-grid\" class=\"grid game-grid\" style=\"grid-template-columns: repeat(%d, 50px); grid-template-rows: repeat(%d, 50px);\">", s.size, s.size))
+	for i := 0; i < s.size; i++ {
+		for j := 0; j < s.size; j++ {
+			buf.WriteString(fmt.Sprintf("<div class=\"grid-cell\" data-x=\"%d\" data-y=\"%d\">", i, j))
+			if s.field[i][j] != nil {
+				buf.WriteString(s.field[i][j].Name())
+			}
+			buf.WriteString("</div>")
+		}
+	}
+	buf.WriteString("</section>")
+
+	return buf.String()
+}
+
 func (s *Session) String() string {
 	var buf strings.Builder
 	buf.WriteString("Players: ")

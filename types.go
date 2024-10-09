@@ -42,9 +42,10 @@ func (p *PlayerMoveResponse) Data() ([]byte, error) {
 }
 
 type FieldResponse struct {
-	Players []PlayerResponse `json:"players"`
-	Field   [][]string       `json:"field"`
-	Size    int              `json:"size"`
+	Players   []PlayerResponse `json:"players"`
+	Field     [][]string       `json:"field"`
+	FieldHTML string           `json:"fieldHTML"`
+	Size      int              `json:"size"`
 }
 
 func (f *FieldResponse) Data() ([]byte, error) {

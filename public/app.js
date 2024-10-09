@@ -37,10 +37,17 @@ function openWebSocket(sessionName) {
     let j = JSON.parse(msg.data);
 
     if (j.action === "init") {
-      createGrid(j.data.field, j.data.players);
+      const gridElement = document.getElementById("game-grid");
+      gridElement.outerHTML = j.data.fieldHTML;
 
       const gameInfoDiv = document.getElementById("game-info");
       gameInfoDiv.innerHTML = "";
+
+      const gameSize = j.data.size;
+
+	 const gameSizeElement = document.createElement("p");
+	 gameSizeElement.textContent = `Game Size: ${gameSize} x ${gameSize} (Total Cells: ${gameSize * gameSize})`;
+	 gameInfoDiv.appendChild(gameSizeElement);
 
       const players = j.data.players;
       if (!players || players.length === 0) {
@@ -71,39 +78,6 @@ function openWebSocket(sessionName) {
   socket.onerror = (error) => {
     console.error("WebSocket error:", error);
   };
-}
-
-function createGrid(field, players) {
-  const gridElement = document.getElementById("game-grid");
-  gridElement.innerHTML = "";
-
-  const size = field.length;
-
-  gridElement.style.gridTemplateColumns = `repeat(${size}, 50px)`;
-  gridElement.style.gridTemplateRows = `repeat(${size}, 50px)`;
-
-  field.forEach((row, x) => {
-    row.forEach((_, y) => {
-      const div = document.createElement("div");
-      div.classList.add("grid-cell");
-      div.setAttribute("data-x", x);
-      div.setAttribute("data-y", y);
-
-      if (players) {
-        // TODO feels like we can do this better
-        const player = players.find((p) => p.x === x && p.y === y);
-        if (player) {
-          div.innerText = player.name;
-          div.classList.add("player");
-          if (player.infected) {
-            div.classList.add("infected");
-          }
-        }
-      }
-
-      gridElement.appendChild(div);
-    });
-  });
 }
 
 function updatePlayer(data) {
